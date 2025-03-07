@@ -1,6 +1,7 @@
 import { CommonConf } from '@config/commonConf';
 import { Injectable } from '@nestjs/common';
 import { ConfigService, ConfigType } from '@nestjs/config';
+import { MODE } from './variables/environments';
 
 @Injectable()
 export class CommonService {
@@ -9,8 +10,10 @@ export class CommonService {
 
   constructor(private readonly configService: ConfigService) {
     const common = this.getConfig<CommonConf>('common');
-    this.allowedHosts = new Set([common.host]);
-    this.allowedPorts = new Set([common.port]);
+    this.allowedHosts = new Set(
+      MODE === 'development' ? [common.host, 'localhost'] : [common.host],
+    );
+    this.allowedPorts = new Set(MODE === 'development' ? [common.port] : [443]);
   }
 
   get allowOrigins(): string[] {

@@ -1,27 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from './User';
 
-export class Profile {
+export class Provider {
   @ApiProperty({ type: Number })
   id!: number;
 
   @ApiProperty({ type: Number })
   userId!: number;
 
-  @ApiProperty({ type: Buffer })
-  buffer!: Buffer;
+  @ApiProperty({ type: String })
+  type!: string;
 
   @ApiProperty({ type: String })
-  mimeType!: string;
-
-  @ApiProperty({ type: Number })
-  size!: number;
+  token!: string | null;
 
   @ApiProperty({ type: String })
-  originName!: string;
-
-  @ApiProperty({ type: String })
-  filename!: string;
+  refresh!: string | null;
 
   @ApiProperty({ type: Date })
   createdAt!: Date;
+
+  @ApiProperty({ type: () => User })
+  user!: User;
 }

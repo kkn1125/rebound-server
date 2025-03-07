@@ -8,6 +8,7 @@ import { SecretConf } from '@config/secretConf';
 @Injectable()
 export class AuthService {
   secretKey: string;
+
   constructor(private readonly commonService: CommonService) {
     const secret = commonService.getConfig<SecretConf>('secret');
     this.secretKey = secret.jwt;

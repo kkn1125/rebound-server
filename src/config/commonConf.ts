@@ -1,11 +1,18 @@
 import { VERSION } from '@common/variables/constants';
-import { HOST, PORT } from '@common/variables/environments';
+import {
+  EXTERNAL_URL,
+  HOST,
+  PORT,
+  SERVER_URL,
+} from '@common/variables/environments';
 import { registerAs } from '@nestjs/config';
 
 const commonConf = {
-  host: HOST ?? '0.0.0.0',
-  port: +(PORT ?? 8080),
+  host: HOST,
+  port: PORT,
   version: VERSION,
+  serverUrl: SERVER_URL,
+  externalUrl: EXTERNAL_URL,
 };
 
 export default registerAs('common', () => commonConf);

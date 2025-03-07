@@ -30,7 +30,7 @@ npm i amqplib amqp-connection-manager # RabbitMQ 메세징
 npm i @nestjs-modules/ioredis ioredis # Redis
 
 npm i express-session
-npm i -D @types/express-session 
+npm i -D @types/express-session
 
 npm i jsonwebtoken # JWT
 npm i -D @types/jsonwebtoken

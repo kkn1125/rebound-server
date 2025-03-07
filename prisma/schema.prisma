@@ -8,6 +8,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// datasource db {
+//   provider  = "postgresql"
+//   url       = env("DATABASE_URL")
+//   directUrl = env("DIRECT_URL")
+// }
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
@@ -24,42 +30,145 @@ generator erdPng {
 }
 
 generator prismaClassGenerator {
-  provider               = "prisma-class-generator"
-  output                 = "../src/_gen/prisma-classes"
-  dryRun                 = false
-  useSwagger             = true
-  separateRelationFields = true
+  provider                 = "prisma-class-generator"
+  output                   = "../src/_gen2/"
+  dryRun                   = false
+  useSwagger               = true
+  separateRelationFields   = false
+  useNonNullableAssertions = true
+  preserveDefaultNullable  = true
+}
+
+generator customGenerator {
+  provider = "echo here? && ts-node ./custom-generator/index.ts"
+  output   = "../src/_gen/"
 }
 
 model User {
-  id               Int       @id @default(autoincrement())
-  email            String    @unique @db.VarChar(70)
-  username         String    @db.VarChar(50)
-  password         String    @db.VarChar(150)
-  isEmailConfirmed Boolean   @default(false) @map("is_email_confirmed")
-  role             Int       @default(dbgenerated("1"))
-  state            Int       @default(dbgenerated("1"))
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  deletedAt        DateTime? @map("deleted_at")
-  lastLogin        DateTime? @map("last_login")
+  id        Int       @id @default(autoincrement())
+  email     String    @unique @db.VarChar(70)
+  username  String    @db.VarChar(50)
+  password  String    @db.VarChar(150)
+  role      Int       @default(1)
+  provide   String    @default("local") @db.VarChar(15)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
-  profile Profile?
+  timeCoin         TimeCoin?
+  provider         Provider?
+  profileImages    ProfileImage[]
+  failgramPosts    FailgramPost[]
+  failgramComments FailgramComment[]
+  failgramLikes    FailgramLike[]
 
   @@map("user")
 }
 
-model Profile {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @unique @map("user_id")
-  buffer     Bytes    @db.MediumBlob
-  mimeType   String   @map("mime_type") @db.VarChar(20)
-  size       Int
-  originName String   @map("origin_name") @db.VarChar(50)
-  filename   String   @db.VarChar(150)
-  createdAt  DateTime @map("created_at")
+model ProfileImage {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  image        Bytes     @db.MediumBlob
+  mimeType     String    @map("mime_type") @db.VarChar(20)
+  fileSize     Int       @map("file_size")
+  imageSize    String    @map("image_size")
+  originalName String    @map("original_name") @db.VarChar(50)
+  filename     String    @db.VarChar(150)
+  createdAt    DateTime  @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
 
   user User @relation(fields: [userId], references: [id])
 
-  @@map("profile")
+  @@map("profile_image")
+}
+
+model Provider {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique @map("user_id")
+  type      String   @db.VarChar(15)
+  token     String?
+  refresh   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("provider")
+}
+
+model TimeCoin {
+  userId   Int     @id @unique @map("user_id")
+  coin     Int     @db.UnsignedInt
+  isActive Boolean @map("is_active")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("time_coin")
+}
+
+model FailgramPost {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  title       String    @db.VarChar(100)
+  summary     String    @db.VarChar(255)
+  isPublic    Boolean   @map("is_public")
+  isPublished Boolean   @map("is_published")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  user             User              @relation(fields: [userId], references: [id])
+  failgramLogs     FailgramLog[]
+  failgramComments FailgramComment[]
+  failgramLikes    FailgramLike[]
+
+  @@map("failgram_post")
+}
+
+model FailgramLog {
+  id             Int       @id @default(autoincrement())
+  failgramPostId Int       @map("failgram_post_id")
+  subject        String    @db.VarChar(100)
+  description    String
+  type           String    @default("description") @db.VarChar(20)
+  sequence       Int
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  failgramPost FailgramPost @relation(fields: [failgramPostId], references: [id])
+
+  @@map("failgram_log")
+}
+
+model FailgramComment {
+  userId         Int       @map("user_id")
+  failgramPostId Int       @map("failgram_post_id")
+  comment        String    @db.VarChar(255)
+  layer          Int
+  group          Int
+  order          Int
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  user         User         @relation(fields: [userId], references: [id])
+  failgramPost FailgramPost @relation(fields: [failgramPostId], references: [id])
+
+  @@id([userId, failgramPostId])
+  @@map("failgram_comment")
+}
+
+model FailgramLike {
+  userId         Int       @map("user_id")
+  failgramPostId Int       @map("failgram_post_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  user         User         @relation(fields: [userId], references: [id])
+  failgramPost FailgramPost @relation(fields: [failgramPostId], references: [id])
+
+  @@id([userId, failgramPostId])
+  @@unique([userId, failgramPostId])
+  @@map("failgram_like")
 }

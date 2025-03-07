@@ -17,6 +17,10 @@ export class LoggerService {
   warn!: (...message: unknown[]) => void;
   error!: (...message: unknown[]) => void;
 
+  constructor() {
+    this.update();
+  }
+
   setContext<T extends object | string>(context: T) {
     if (typeof context === 'string') {
       this.context = context;
@@ -33,7 +37,7 @@ export class LoggerService {
   private bindConsoleFeatures() {
     for (const logLevel of this.logLevels) {
       Object.defineProperty(this, logLevel, {
-        get: () => {
+        get: /* istanbul ignore next */ () => {
           return console[logLevel].bind(
             this,
             `[${this.context}] ${this.timestamp} `,
@@ -43,6 +47,7 @@ export class LoggerService {
     }
   }
 
+  /* istanbul ignore next */
   private get timestamp() {
     return dayjs().format(LOG_FORMAT);
   }

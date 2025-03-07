@@ -1,16 +1,36 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import { CommonService } from './common.service';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { ConfigModule } from '@nestjs/config';
-import commonConf from '@config/commonConf';
 
 describe('CommonService', () => {
   let service: CommonService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule.forFeature(commonConf)],
-      providers: [CommonService],
+      providers: [
+        {
+          provide: ConfigService,
+          useValue: {
+            get: vitest.fn(
+              (name: string) =>
+                ({
+                  common: {
+                    host: '127.0.0.1',
+                    port: 8080,
+                    version: '0.0.1',
+                  },
+                  secret: {
+                    jwt: 'JWT_SECRET_KEY',
+                    password: 'PASSWORD_SECRET_KEY',
+                    session: 'SESSION_SECRET_KEY',
+                  },
+                })[name],
+            ),
+          },
+        },
+        CommonService,
+      ],
     }).compile();
 
     service = module.get<CommonService>(CommonService);

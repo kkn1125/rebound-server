@@ -20,13 +20,13 @@ async function bootstrap() {
   const commonService = app.get(CommonService);
   const common = commonService.getConfig<CommonConf>('common');
   const secret = commonService.getConfig<SecretConf>('secret');
-
   const logger = app.get(LoggerService);
   const loggerService = await app.resolve(LoggerService);
 
   app.enableCors({
     origin: commonService.allowOrigins,
   });
+  app.enableVersioning({ type: VersioningType.URI });
 
   app.use(cookieParser());
   app.use(compression());
@@ -37,7 +37,7 @@ async function bootstrap() {
       saveUninitialized: false,
     }),
   );
-  app.enableVersioning({ type: VersioningType.URI });
+
   app.setGlobalPrefix('api');
   app.useGlobalGuards(new PermissionGuard(loggerService));
 
@@ -46,7 +46,7 @@ async function bootstrap() {
     .setTitle('시드 템플릿')
     .setDescription('시드 템플릿 API 백엔드 개발')
     .setVersion('1.0')
-    .addServer(common.host)
+    .addServer(common.externalUrl)
     .addCookieAuth('token', {
       type: 'apiKey',
       in: 'cookie',
@@ -67,7 +67,9 @@ async function bootstrap() {
   await app.listen(common.port, common.host);
 
   const url = await app.getUrl();
+
   logger.log(`listening on ${url}`);
+  logger.debug('allowOrigins:', commonService.allowOrigins);
 }
 bootstrap().catch((err) => {
   console.error('Server start error', err);
